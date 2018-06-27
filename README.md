@@ -11,6 +11,7 @@ This code runs a simple Flask server that exposes the demo function and endpoint
 * `/timepoint_departures/<int:route>/<int:direction>/<stop>`
 * `/vehicle_locations/<int:route>`
 
+Additionally, the endpoint methods can accept an optional query parameter `?cache_bust` to forcefully bypass the cache.
 
 # Usage
 The server will always run on port 8080. If you are running the script directly, be sure to change the last line if necessary. If you are running the server through Docker, always map to port 8080.
