@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _reference: http://svc.metrotransit.org/
 
@@ -15,7 +14,7 @@ from functools import wraps
 from typing import Union, Callable
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Cache lifespan constants in seconds
 GENERAL_CACHE_LIFESPAN = 3600
@@ -148,9 +147,7 @@ class NexTrip:
     }
 
     def __init__(self, *, debug=False):
-        """
-        Creates a NexTrip API wrapper object with caches.
-        """
+        """Creates a NexTrip API wrapper object with caches."""
         # Debug
         self._use_debug = debug
         handler = logging.StreamHandler()
