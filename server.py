@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from sys import argv
 from flask import Flask, request, jsonify
 from nextrip import NexTrip, demo
@@ -102,6 +101,12 @@ def api_vehicle_locations(route):
         return jsonify(nt.vehicle_locations(route))
     except Exception as e:
         format_api_exception(e)
+
+
+@app.after_request
+def allow_cors(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 if __name__ == '__main__':
