@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nextrip module &mdash; target_nextrip 0.1a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> target_nextrip
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">nextrip module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">target_nextrip</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>nextrip module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nextrip.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-nextrip">
+<span id="nextrip-module"></span><h1>nextrip module<a class="headerlink" href="#module-nextrip" title="Permalink to this headline">¶</a></h1>
+<p>A NexTrip API wrapper. See the NexTrip API <a class="reference external" href="http://svc.metrotransit.org/">reference</a> for more information.</p>
+<dl class="class">
+<dt id="nextrip.CacheEntry">
+<em class="property">class </em><code class="descclassname">nextrip.</code><code class="descname">CacheEntry</code><span class="sig-paren">(</span><em>lifespan</em>, <em>*</em>, <em>initial=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#CacheEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.CacheEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A cache entry object that contains cached data, a lifespan, and a
+property that returns whether or not the entry has expired.</p>
+<dl class="exception">
+<dt id="nextrip.CacheEntry.CacheExpiredException">
+<em class="property">exception </em><code class="descname">CacheExpiredException</code><a class="reference internal" href="_modules/nextrip.html#CacheEntry.CacheExpiredException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.CacheEntry.CacheExpiredException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Thrown if an entry was expired upon retrieval.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nextrip.CacheEntry.data">
+<code class="descname">data</code><a class="headerlink" href="#nextrip.CacheEntry.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The entry’s cached data value</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nextrip.CacheEntry.expired">
+<code class="descname">expired</code><a class="headerlink" href="#nextrip.CacheEntry.expired" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not the cache entry has expired</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.CacheEntry.hook">
+<code class="descname">hook</code><span class="sig-paren">(</span><em>cache_bust</em>, <em>callback</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#CacheEntry.hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.CacheEntry.hook" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cache_bust</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – forces the callback to be made, overwriting any cached data</li>
+<li><strong>callback</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>) – the function to be called with <code class="docutils literal notranslate"><span class="pre">args</span></code> and <code class="docutils literal notranslate"><span class="pre">kwargs</span></code></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the entry’s data. If it has expired, it will be updated first
+with the return value of the callback. Additional (positional) arguments
+are used as parameters for the callback if it is needed.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#nextrip.CacheEntry" title="nextrip.CacheEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheEntry</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nextrip.NexTrip">
+<em class="property">class </em><code class="descclassname">nextrip.</code><code class="descname">NexTrip</code><span class="sig-paren">(</span><em>*</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A NexTrip API wrapper object.</p>
+<p>This provides coverage of all of the endpoints available and respects
+the caching requests as stated on the NexTrip API <a class="reference external" href="http://svc.metrotransit.org/">reference</a>.</p>
+<p>The return types of these endpoint methods are those returned by <code class="docutils literal notranslate"><span class="pre">json.loads</span></code>.</p>
+<p>This will raise <a class="reference external" href="https://docs.python.org/3/library/urllib.error.html">urllib</a> and
+<a class="reference external" href="https://docs.python.org/3/library/json.html#exceptions">json</a> exceptions.</p>
+<p>More information regarding return types and constants can be found in the <a class="reference external" href="http://svc.metrotransit.org/">reference</a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All endpoint methods that include a <code class="docutils literal notranslate"><span class="pre">cache_bust</span></code> keyword argument provide
+the option to bypass the cache by setting it to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</div>
+<dl class="docutils">
+<dt>Example usage:</dt>
+<dd><div class="first last highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># Create a NexTrip wrapper object</span>
+<span class="kn">from</span> <span class="nn">nextrip</span> <span class="kn">import</span> <span class="n">NexTrip</span>
+<span class="n">nt</span> <span class="o">=</span> <span class="n">NexTrip</span><span class="p">()</span>
+
+<span class="c1"># METRO Blue cardinal directions</span>
+<span class="n">dirs</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">directions</span><span class="p">(</span><span class="mi">901</span><span class="p">)</span>
+
+<span class="c1"># Get stops in the first direction provided</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">stops</span><span class="p">(</span><span class="mi">901</span><span class="p">,</span> <span class="n">dirs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Value&#39;</span><span class="p">])</span>
+
+<span class="c1"># Print the last stop&#39;s code and name</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;{0[Value]}: {0[Text]}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stops</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</td></tr></table></div>
+</dd>
+</dl>
+<p>For a more extensive example, see the <a class="reference internal" href="#nextrip.demo" title="nextrip.demo"><code class="xref py py-func docutils literal notranslate"><span class="pre">demo()</span></code></a> source code.</p>
+<dl class="class">
+<dt id="nextrip.NexTrip.Directions">
+<em class="property">class </em><code class="descname">Directions</code><a class="reference internal" href="_modules/nextrip.html#NexTrip.Directions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.Directions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>Integer enumeration of available cardinal directions.
+These are defined on the NexTrip API <a class="reference external" href="http://svc.metrotransit.org/">reference</a>.</p>
+<dl class="attribute">
+<dt id="nextrip.NexTrip.Directions.EAST">
+<code class="descname">EAST</code><em class="property"> = 2</em><a class="headerlink" href="#nextrip.NexTrip.Directions.EAST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="nextrip.NexTrip.Directions.NORTH">
+<code class="descname">NORTH</code><em class="property"> = 4</em><a class="headerlink" href="#nextrip.NexTrip.Directions.NORTH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="nextrip.NexTrip.Directions.SOUTH">
+<code class="descname">SOUTH</code><em class="property"> = 1</em><a class="headerlink" href="#nextrip.NexTrip.Directions.SOUTH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="nextrip.NexTrip.Directions.WEST">
+<code class="descname">WEST</code><em class="property"> = 3</em><a class="headerlink" href="#nextrip.NexTrip.Directions.WEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.departures">
+<code class="descname">departures</code><span class="sig-paren">(</span><em>stop_id</em>, <em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.departures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.departures" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stop_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – a <a class="reference external" href="https://gisdata.mn.gov/dataset/us-mn-state-metc-trans-transit-schedule-google-fd">stop ID</a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of departures scheduled for the given <a class="reference external" href="https://gisdata.mn.gov/dataset/us-mn-state-metc-trans-transit-schedule-google-fd">stop ID</a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.directions">
+<code class="descname">directions</code><span class="sig-paren">(</span><em>route</em>, <em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.directions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.directions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>route</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a <a class="reference internal" href="#nextrip.NexTrip.routes" title="nextrip.NexTrip.routes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route</span> <span class="pre">ID</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the pair of directions allowed for the given route.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.providers">
+<code class="descname">providers</code><span class="sig-paren">(</span><em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.providers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.providers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of provider names and their respective provider IDs.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.routes">
+<code class="descname">routes</code><span class="sig-paren">(</span><em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.routes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.routes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of routes and their respective route IDs.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.stops">
+<code class="descname">stops</code><span class="sig-paren">(</span><em>route</em>, <em>direction</em>, <em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.stops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.stops" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>route</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a <a class="reference internal" href="#nextrip.NexTrip.routes" title="nextrip.NexTrip.routes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route</span> <span class="pre">ID</span></code></a></li>
+<li><strong>direction</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a cardinal <a class="reference internal" href="#nextrip.NexTrip.Directions" title="nextrip.NexTrip.Directions"><code class="xref py py-class docutils literal notranslate"><span class="pre">direction</span></code></a> number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of stops along the route in the direction specified.
+Results include the stop name and 4 character stop code.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.timepoint_departures">
+<code class="descname">timepoint_departures</code><span class="sig-paren">(</span><em>route</em>, <em>direction</em>, <em>stop</em>, <em>cache_bust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.timepoint_departures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.timepoint_departures" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>route</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a <a class="reference internal" href="#nextrip.NexTrip.routes" title="nextrip.NexTrip.routes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route</span> <span class="pre">ID</span></code></a></li>
+<li><strong>direction</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a cardinal <a class="reference internal" href="#nextrip.NexTrip.Directions" title="nextrip.NexTrip.Directions"><code class="xref py py-class docutils literal notranslate"><span class="pre">direction</span></code></a> number</li>
+<li><strong>stop</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – a 4 character stop code</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of departures from the given arguments.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nextrip.NexTrip.vehicle_locations">
+<code class="descname">vehicle_locations</code><span class="sig-paren">(</span><em>route</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#NexTrip.vehicle_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.NexTrip.vehicle_locations" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>route</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]) – a <a class="reference internal" href="#nextrip.NexTrip.routes" title="nextrip.NexTrip.routes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route</span> <span class="pre">ID</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the vehicles and their properties for the given route.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="nextrip.demo">
+<code class="descclassname">nextrip.</code><code class="descname">demo</code><span class="sig-paren">(</span><em>route_name</em>, <em>stop_name</em>, <em>direction_name</em>, <em>debug=False</em>, <em>session=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nextrip.html#demo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nextrip.demo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demos the functionality of the wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>route_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – substring of the bus route name</li>
+<li><strong>stop_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – substring of the bus stop name</li>
+<li><strong>direction_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – a cardinal direction name</li>
+<li><strong>session</strong> (<a class="reference internal" href="#nextrip.NexTrip" title="nextrip.NexTrip"><em>NexTrip</em></a>) – an existing NexTrip object can be provided to preserve cache entries</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the number of minutes until the next bus at the given
+stop going in the given direction will leave.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Joshua Chen.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1a',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

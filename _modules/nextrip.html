@@ -1,0 +1,576 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nextrip &mdash; target_nextrip 0.1a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> target_nextrip
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">target_nextrip</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>nextrip</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nextrip</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _reference: http://svc.metrotransit.org/</span>
+
+<span class="sd">A NexTrip API wrapper. See the NexTrip API `reference`_ for more information.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span>
+
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+
+<span class="c1"># Cache lifespan constants in seconds</span>
+<span class="n">GENERAL_CACHE_LIFESPAN</span> <span class="o">=</span> <span class="mi">3600</span>
+<span class="n">DEPARTURES_CACHE_LIFESPAN</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="CacheEntry"><a class="viewcode-back" href="../nextrip.html#nextrip.CacheEntry">[docs]</a><span class="k">class</span> <span class="nc">CacheEntry</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A cache entry object that contains cached data, a lifespan, and a</span>
+<span class="sd">    property that returns whether or not the entry has expired.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CacheEntry.CacheExpiredException"><a class="viewcode-back" href="../nextrip.html#nextrip.CacheEntry.CacheExpiredException">[docs]</a>    <span class="k">class</span> <span class="nc">CacheExpiredException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Thrown if an entry was expired upon retrieval.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;cache entry expired&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lifespan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a cache entry with the given lifespan.</span>
+
+<span class="sd">        :param lifespan: number of seconds until the cache data expires</span>
+<span class="sd">        :param initial: initial data to add to the cache</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Debug</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;[CE]: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">initial</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">if</span> <span class="n">initial</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">lifespan</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The entry&#39;s cached data value&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expired</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cache entry expired (last_fetched </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">CacheExpiredException</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+
+    <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">new_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cache data set (last_fetched </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Whether or not the cache entry has expired&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span>
+
+<div class="viewcode-block" id="CacheEntry.hook"><a class="viewcode-back" href="../nextrip.html#nextrip.CacheEntry.hook">[docs]</a>    <span class="k">def</span> <span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_bust</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CacheEntry&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param cache_bust: forces the callback to be made, overwriting any cached data</span>
+<span class="sd">        :param callback: the function to be called with ``args`` and ``kwargs``</span>
+
+<span class="sd">        :Returns: the entry&#39;s data. If it has expired, it will be updated first</span>
+<span class="sd">            with the return value of the callback. Additional (positional) arguments</span>
+<span class="sd">            are used as parameters for the callback if it is needed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expired</span> <span class="ow">or</span> <span class="n">cache_bust</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;using callback (last_fetched </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fetched</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">callback</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="NexTrip"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip">[docs]</a><span class="k">class</span> <span class="nc">NexTrip</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. |route ID| replace:: :meth:`route ID &lt;routes&gt;`</span>
+<span class="sd">    .. |direction| replace:: :class:`direction &lt;NexTrip.Directions&gt;`</span>
+<span class="sd">    .. |stop ID| replace:: `stop ID &lt;https://gisdata.mn.gov/dataset/</span>
+<span class="sd">        us-mn-state-metc-trans-transit-schedule-google-fd&gt;`__</span>
+
+<span class="sd">    A NexTrip API wrapper object.</span>
+
+<span class="sd">    This provides coverage of all of the endpoints available and respects</span>
+<span class="sd">    the caching requests as stated on the NexTrip API `reference`_.</span>
+
+<span class="sd">    The return types of these endpoint methods are those returned by ``json.loads``.</span>
+
+<span class="sd">    This will raise `urllib &lt;https://docs.python.org/3/library/urllib.error.html&gt;`_ and</span>
+<span class="sd">    `json &lt;https://docs.python.org/3/library/json.html#exceptions&gt;`_ exceptions.</span>
+
+<span class="sd">    More information regarding return types and constants can be found in the `reference`_.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        All endpoint methods that include a ``cache_bust`` keyword argument provide</span>
+<span class="sd">        the option to bypass the cache by setting it to ``True``.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">            :linenos:</span>
+
+<span class="sd">            # Create a NexTrip wrapper object</span>
+<span class="sd">            from nextrip import NexTrip</span>
+<span class="sd">            nt = NexTrip()</span>
+
+<span class="sd">            # METRO Blue cardinal directions</span>
+<span class="sd">            dirs = nt.directions(901)</span>
+
+<span class="sd">            # Get stops in the first direction provided</span>
+<span class="sd">            stops = nt.stops(901, dirs[0][&#39;Value&#39;])</span>
+
+<span class="sd">            # Print the last stop&#39;s code and name</span>
+<span class="sd">            print(&#39;{0[Value]}: {0[Text]}&#39;.format(stops[-1]))</span>
+
+<span class="sd">    For a more extensive example, see the :func:`demo` source code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NexTrip.Directions"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.Directions">[docs]</a>    <span class="k">class</span> <span class="nc">Directions</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integer enumeration of available cardinal directions.</span>
+<span class="sd">        These are defined on the NexTrip API `reference`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">SOUTH</span><span class="p">,</span> <span class="n">EAST</span><span class="p">,</span> <span class="n">WEST</span><span class="p">,</span> <span class="n">NORTH</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1"># Why</span>
+
+        <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+    <span class="n">_base</span> <span class="o">=</span> <span class="s1">&#39;http://svc.metrotransit.org/NexTrip/&#39;</span>
+    <span class="n">_headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a NexTrip API wrapper object with caches.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;[NT]: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_providers_cache</span> <span class="o">=</span> <span class="n">CacheEntry</span><span class="p">(</span><span class="n">GENERAL_CACHE_LIFESPAN</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_debug</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_routes_cache</span> <span class="o">=</span> <span class="n">CacheEntry</span><span class="p">(</span><span class="n">GENERAL_CACHE_LIFESPAN</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_debug</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_directions_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stops_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_departures_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timepoint_departures_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_cache_key</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a cache key from the given arguments.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;:::&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_endpoint_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds logging calls to each endpoint method&quot;&quot;&quot;</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_decorated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_decorated</span>
+
+    <span class="k">def</span> <span class="nf">_setdefault_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">lifespan</span><span class="o">=</span><span class="n">GENERAL_CACHE_LIFESPAN</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a :class:`.CacheEntry` in the given cache with the given key if it exists.</span>
+<span class="sd">            If it does not exist, it is efficiently created with the given lifespan.</span>
+
+<span class="sd">        Similar to ``dict.setdefault``, but does not always create a :class:`.CacheEntry` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="p">:</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="n">CacheEntry</span><span class="p">(</span><span class="n">lifespan</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_debug</span><span class="p">)</span>
+            <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+        <span class="k">return</span> <span class="n">entry</span>
+
+    <span class="k">def</span> <span class="nf">_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">+</span> <span class="n">path</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_headers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;requesting </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">full_url</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<div class="viewcode-block" id="NexTrip.providers"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.providers">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">providers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:Returns: a list of provider names and their respective provider IDs.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_providers_cache</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="s1">&#39;Providers&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.routes"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.routes">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">routes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:Returns: a list of routes and their respective route IDs.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routes_cache</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="s1">&#39;Routes&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.directions"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.directions">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">directions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">route</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param route: a |route ID|</span>
+
+<span class="sd">        :Returns: the pair of directions allowed for the given route.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setdefault_entry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_directions_cache</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cache_key</span><span class="p">(</span><span class="n">route</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;Directions/</span><span class="si">{route}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.stops"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.stops">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">stops</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">route</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="n">direction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;NexTrip.Directions&#39;</span><span class="p">],</span>
+            <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param route: a |route ID|</span>
+<span class="sd">        :param direction: a cardinal |direction| number</span>
+
+<span class="sd">        :Returns: a list of stops along the route in the direction specified.</span>
+<span class="sd">            Results include the stop name and 4 character stop code.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setdefault_entry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stops_cache</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cache_key</span><span class="p">(</span><span class="n">route</span><span class="p">,</span> <span class="n">direction</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;Stops/</span><span class="si">{route}</span><span class="s1">/</span><span class="si">{direction}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.departures"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.departures">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">departures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stop_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param stop_id: a |stop ID|.</span>
+
+<span class="sd">        :Returns: a list of departures scheduled for the given |stop ID|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setdefault_entry</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_departures_cache</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cache_key</span><span class="p">(</span><span class="n">stop_id</span><span class="p">),</span>
+            <span class="n">lifespan</span><span class="o">=</span><span class="n">DEPARTURES_CACHE_LIFESPAN</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;Departures/</span><span class="si">{stop_id}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.timepoint_departures"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.timepoint_departures">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">timepoint_departures</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">route</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="n">direction</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;NexTrip.Directions&#39;</span><span class="p">],</span>
+            <span class="n">stop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">cache_bust</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param route: a |route ID|</span>
+<span class="sd">        :param direction: a cardinal |direction| number</span>
+<span class="sd">        :param stop: a 4 character stop code</span>
+
+<span class="sd">        :Returns: a list of departures from the given arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setdefault_entry</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_timepoint_departures_cache</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cache_key</span><span class="p">(</span><span class="n">route</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">stop</span><span class="p">),</span>
+            <span class="n">lifespan</span><span class="o">=</span><span class="n">DEPARTURES_CACHE_LIFESPAN</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="n">cache_bust</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{route}</span><span class="s1">/</span><span class="si">{direction}</span><span class="s1">/</span><span class="si">{stop}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexTrip.vehicle_locations"><a class="viewcode-back" href="../nextrip.html#nextrip.NexTrip.vehicle_locations">[docs]</a>    <span class="nd">@_endpoint_method</span>
+    <span class="k">def</span> <span class="nf">vehicle_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">route</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param route: a |route ID|</span>
+
+<span class="sd">        :Returns: the vehicles and their properties for the given route.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;VehicleLocations/</span><span class="si">{route}</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="demo"><a class="viewcode-back" href="../nextrip.html#nextrip.demo">[docs]</a><span class="k">def</span> <span class="nf">demo</span><span class="p">(</span><span class="n">route_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stop_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">direction_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Demos the functionality of the wrapper.</span>
+
+<span class="sd">    :param route_name: substring of the bus route name</span>
+<span class="sd">    :param stop_name: substring of the bus stop name</span>
+<span class="sd">    :param direction_name: a cardinal direction name</span>
+<span class="sd">    :param NexTrip session: an existing NexTrip object can be provided to preserve cache entries</span>
+
+<span class="sd">    :Returns: the number of minutes until the next bus at the given</span>
+<span class="sd">        stop going in the given direction will leave.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">nt</span> <span class="o">=</span> <span class="n">session</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nt</span> <span class="o">=</span> <span class="n">NexTrip</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="c1"># Debug</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">logger</span><span class="o">.</span><span class="n">hasHandlers</span><span class="p">():</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;[Demo]: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">nt</span><span class="o">.</span><span class="n">_use_debug</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="c1"># Get route</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting route </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">route_name</span><span class="p">)</span>
+    <span class="n">routes</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">routes</span><span class="p">()</span>
+    <span class="n">route</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">routes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">route_name</span> <span class="ow">in</span> <span class="n">it</span><span class="p">[</span><span class="s1">&#39;Description&#39;</span><span class="p">]:</span>
+            <span class="n">route</span> <span class="o">=</span> <span class="n">it</span><span class="p">[</span><span class="s1">&#39;Route&#39;</span><span class="p">]</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">route</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Route not found&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found route </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span>
+
+    <span class="c1"># Convert direction</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting direction </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">direction_name</span><span class="p">)</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;south&#39;</span><span class="p">:</span> <span class="n">NexTrip</span><span class="o">.</span><span class="n">Directions</span><span class="o">.</span><span class="n">SOUTH</span><span class="p">,</span>
+        <span class="s1">&#39;east&#39;</span><span class="p">:</span> <span class="n">NexTrip</span><span class="o">.</span><span class="n">Directions</span><span class="o">.</span><span class="n">EAST</span><span class="p">,</span>
+        <span class="s1">&#39;west&#39;</span><span class="p">:</span> <span class="n">NexTrip</span><span class="o">.</span><span class="n">Directions</span><span class="o">.</span><span class="n">WEST</span><span class="p">,</span>
+        <span class="s1">&#39;north&#39;</span><span class="p">:</span> <span class="n">NexTrip</span><span class="o">.</span><span class="n">Directions</span><span class="o">.</span><span class="n">NORTH</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">direction_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">direction</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid direction&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found direction </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+
+    <span class="c1"># Get stop code</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting stop </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">stop_name</span><span class="p">)</span>
+    <span class="n">stops</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">stops</span><span class="p">(</span><span class="n">route</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">stops</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">stop_name</span> <span class="ow">in</span> <span class="n">it</span><span class="p">[</span><span class="s1">&#39;Text&#39;</span><span class="p">]:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">it</span><span class="p">[</span><span class="s1">&#39;Value&#39;</span><span class="p">]</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Stop not found&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found stop </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+
+    <span class="c1"># Get departures</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting departures&quot;</span><span class="p">)</span>
+    <span class="n">departures</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">timepoint_departures</span><span class="p">(</span><span class="n">route</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">departures</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found departures&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Get latest departure and the time until the bus leaves</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getting departure time&quot;</span><span class="p">)</span>
+    <span class="n">raw_time</span> <span class="o">=</span> <span class="n">departures</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;DepartureTime&#39;</span><span class="p">]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;parsing time </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">raw_time</span><span class="p">)</span>
+    <span class="n">seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">raw_time</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">1000</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;time parsed to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">seconds</span><span class="p">)</span>
+    <span class="n">remaining</span> <span class="o">=</span> <span class="p">(</span><span class="n">seconds</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">/</span> <span class="mi">60</span>
+    <span class="k">if</span> <span class="n">remaining</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Always have one minute remaining at minimum</span>
+    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">remaining</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">usage</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;Usage:</span><span class="se">\n\t</span><span class="s2">python3 nextrip.py &lt;route name&gt; &lt;stop name&gt; &lt;direction&gt;</span><span class="se">\n\n\t</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Valid direction names: north, east, south, west&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">usage</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">demo</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Minute</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;s&#39;</span><span class="p">))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Joshua Chen.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1a',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

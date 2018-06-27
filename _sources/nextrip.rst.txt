@@ -1,0 +1,7 @@
+nextrip module
+==============
+
+.. automodule:: nextrip
+    :members:
+    :undoc-members:
+    :show-inheritance:
