@@ -139,8 +139,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for nextrip</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">.. _reference: http://svc.metrotransit.org/</span>
 
 <span class="sd">A NexTrip API wrapper. See the NexTrip API `reference`_ for more information.</span>
@@ -156,7 +155,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span>
 
 
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;1.0.1&#39;</span>
 
 <span class="c1"># Cache lifespan constants in seconds</span>
 <span class="n">GENERAL_CACHE_LIFESPAN</span> <span class="o">=</span> <span class="mi">3600</span>
@@ -289,9 +288,7 @@
     <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a NexTrip API wrapper object with caches.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Creates a NexTrip API wrapper object with caches.&quot;&quot;&quot;</span>
         <span class="c1"># Debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
