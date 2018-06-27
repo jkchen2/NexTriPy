@@ -8,6 +8,8 @@ Click [here](https://jkchen2.github.io/NexTriPy/nextrip.html) for the wrapper do
 ## Usage
 This wrapper was written to fulfill a specific demo. Given a route, stop, and direction, it will print the number of minutes remaining until the next bus leaves (or nothing if no bus is available).
 
+Click [here](https://jkchen2.github.io/NexTriPy/demo/) for a web-based demo.
+
 ```
 $ python nextrip.py "Express - Target - Hwy 252 and 73rd Av P&R - Mpls" "Target North Campus Building F" "south"
 4 Minutes
@@ -44,4 +46,4 @@ stops = nt.stops(901, dirs[0]['Value'])
 print('{0[Value]}: {0[Text]}'.format(stops[-1]))
 ```
 
-For a more extensive example, see the [wrapper documentation](https://jkchen2.github.io/NexTriPy/nextrip.html) and the [demo function source](https://jkchen2.github.io/NexTriPy/_modules/nextrip.html#demo).
+For a more extensive example, see the [wrapper documentation](https://jkchen2.github.io/NexTriPy/nextrip.html), the [demo function source](https://jkchen2.github.io/NexTriPy/_modules/nextrip.html#demo), and the [demo server source](https://github.com/jkchen2/NexTriPy/blob/server/server.py).
