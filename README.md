@@ -47,3 +47,5 @@ print('{0[Value]}: {0[Text]}'.format(stops[-1]))
 ```
 
 For a more extensive example, see the [wrapper documentation](https://jkchen2.github.io/NexTriPy/nextrip.html), the [demo function source](https://jkchen2.github.io/NexTriPy/_modules/nextrip.html#demo), and the [demo server source](https://github.com/jkchen2/NexTriPy/blob/server/server.py).
+
+See the [server branch](https://github.com/jkchen2/NexTriPy/tree/server) for more information on the demo API server.
