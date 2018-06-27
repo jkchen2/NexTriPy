@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+<style>
+:root {
+    --fg-primary: rgb(255, 255, 255);
+    --fg-secondary: rgb(180, 180, 180);
+    --fg-tertiary: rgb(128, 128, 128);
+    --bg-primary: rgb(48, 48, 48);
+    --bg-secondary: rgb(68, 68, 68);
+    --inversion: 100%;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--fg-primary);
+}
+
+textarea {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-secondary);
+    color: var(--fg-primary);
+    resize: none;
+}
+
+textarea:placeholder {
+    color: var(--fg-secondary);
+}
+
+p {
+    margin: 16px;
+}
+
+hr {
+    margin: 32px -16px 32px -16px;
+    border-style: solid;
+    border-width: 2px;
+    color: var(--fg-secondary);
+}
+
+a:link, a:visited {
+    color: var(--fg-primary);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#main-container {
+    min-width: 600px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 71px;
+}
+
+#info-container {
+    margin: 32px auto 32px auto;
+    max-width: 600px;
+    text-align: center;
+}
+
+#output-container {
+    min-height: 32px;
+    width: 100%;
+}
+
+textarea {
+    text-align: center;
+    font-size: 14px;
+    width: 450px;
+    margin: 8px auto 8px auto;
+    height: 18px;
+    padding: 2px;
+    display: block;
+    border: none;
+    outline: none;
+}
+
+.button {
+    background-color: var(--bg-primary);
+    margin-right: 16px;
+    padding: 4px;
+    border: 2px solid var(--fg-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+#submit-button {
+    width: 150px;
+    margin: 8px auto 8px auto;
+    text-align: center;
+}
+
+#status {
+    color: var(--fg-secondary);
+    font-size: 12px;
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+#result {
+    font-family: 'Roboto Mono', monospace;
+    text-align: center;
+}
+</style>
+<script>
+function demo() {
+    let textareas = document.getElementsByTagName('textarea'),
+        statusDisplay = document.getElementById('status'),
+        resultDisplay = document.getElementById('result'),
+        url = new URL('https://ntdemo.6340140.xyz/demo'),
+        startTime = new Date();
+
+    parameters = {};
+    console.log(textareas);
+    Array.from(textareas).forEach(it => parameters[it.dataset.key] = it.value);
+    Object.keys(parameters).forEach(key => url.searchParams.append(key, parameters[key]));
+    resultDisplay.innerText = 'fetching...';
+    fetch(url).then(response => {
+        response.text().then(text => resultDisplay.innerText = text);
+        statusDisplay.innerText = (
+            'status code: ' + response.status +
+            '\nresponse time: ' + (new Date() - startTime) + ' ms');
+    }).catch(error => {
+        resultDisplay.innerText = 'demo unavailable (' + error + ')';
+        statusDisplay.innerText = '...';
+    });
+}
+</script>
+
+<head>
+    <meta charset="utf-8">
+    <title>NexTriPy demo</title>
+</head>
+
+<body>
+    <div id="main-container">
+        <div id="info-container">
+            <p>This page showcases the <a href="https://jkchen2.github.io/NexTriPy/nextrip.html#nextrip.demo" target="_blank">NexTrip demo function</a>.</p>
+            <p>Given a route name, stop name, and direction, this will return the number of minutes
+            until the next bus leaves, or nothing if the last bus has already left.</p>
+            <p>The direction must be one of "north", "east", "south", or "west".</p>
+        </div>
+        <div id="inputs-container">
+            <textarea rows="1" maxlength="100" placeholder="Route name" data-key="route"></textarea>
+            <textarea rows="1" maxlength="100" placeholder="Stop name" data-key="stop"></textarea>
+            <textarea rows="1" maxlength="100" placeholder="Direction" data-key="direction"></textarea>
+            <div class="button" id="submit-button" onclick="demo()">Submit</div>
+        </div>
+        <hr>
+        <div id="output-container">
+            <div id="status"> ...  </div>
+            <div id="result"></div>
+        </div>
+    </div>
+</body>
